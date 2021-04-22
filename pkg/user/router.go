@@ -1,4 +1,4 @@
-package score
+package user
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 
 func ScoreRoutes(db *sql.DB) *chi.Mux {
 	router := chi.NewRouter()
-	router.Get("/", getAllScore(db))
-	router.Post("/", addScore(db))
+	router.Get("/", getAllUsers(db))
+	router.Post("/", addUser(db))
 	return router
 }
