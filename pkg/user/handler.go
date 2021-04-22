@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
@@ -41,6 +42,19 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+func getUser(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		var user User
+		if err := db.QueryRow(`SELECT * FROM tbl_user where usr_id = $1`, id).Scan(&user.ID, &user.Name, &user.Username, &user.Password); err != nil {
+			//render.JSON(w, r, "Something went wrong")
+			render.JSON(w, r, "This user does not exist.")
+			return
+		}
+		render.JSON(w, r, user)
+	}
+}
+
 func addUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&user)
@@ -48,7 +62,6 @@ func addUser(db *sql.DB) http.HandlerFunc {
 		VALUES ($1,$2,$3);`, user.Name, user.Username, user.Password); err != nil {
 			log.Fatal(err)
 		}
-
 		msg := "You sucessfully added user " + (user.Name)
 		render.JSON(w, r, msg)
 	}
