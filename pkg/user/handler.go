@@ -92,11 +92,10 @@ func logIn(db *sql.DB) http.HandlerFunc {
 		json.NewDecoder(r.Body).Decode(&user)
 		if err := db.QueryRow(`SELECT * FROM tbl_user where usrn = $1 and pwd = $2`, user.Username, user.Password).
 			Scan(&user.ID, &user.Name, &user.Username, &user.Password); err != nil {
-			render.JSON(w, r, err)
+			render.JSON(w, r, "User or password incorrect")
 			//render.JSON(w, r, "This user does not exist.")
 			return
 		}
-
 		token, err := auth.CreateToken(user.Username)
 		if err != nil {
 			render.JSON(w, r, "We couldn't log you in, please try again")
