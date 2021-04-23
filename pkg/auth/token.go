@@ -19,8 +19,8 @@ func CreateToken(user_id string) (string, error) {
 
 }
 
-func TokenValid(r *http.Request) error {
-	tokenString := ExtractToken(r)
+func tokenValid(r *http.Request) error {
+	tokenString := extractToken(r)
 	if tokenString == "lo" {
 		return fmt.Errorf("no active session")
 	}
@@ -36,7 +36,7 @@ func TokenValid(r *http.Request) error {
 	return nil
 }
 
-func ExtractToken(r *http.Request) string {
+func extractToken(r *http.Request) string {
 	c, err := r.Cookie("jwt")
 	if err != nil {
 		return "lo"
@@ -54,7 +54,7 @@ func ExtractToken(r *http.Request) string {
 
 func Authentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := TokenValid(r)
+		err := tokenValid(r)
 		if err != nil {
 			w.WriteHeader(400)
 			render.JSON(w, r, err.Error())
