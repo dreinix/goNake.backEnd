@@ -114,3 +114,18 @@ func logIn(db *sql.DB) http.HandlerFunc {
 		render.JSON(w, r, msg)
 	}
 }
+
+func LogOut(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		expirationTime := time.Now().Add(2 * time.Second)
+		http.SetCookie(w, &http.Cookie{
+			Name:    "jwt",
+			Value:   "loggedout",
+			Expires: expirationTime,
+			Path:    "/",
+		})
+		msg := "logout successfully, come back soon!"
+
+		render.JSON(w, r, msg)
+	}
+}
