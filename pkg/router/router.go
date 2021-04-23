@@ -19,11 +19,8 @@ func StartServer() *chi.Mux {
 	}
 	router := chi.NewRouter()
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome"))
-	})
 	router.Mount("/api/scores", score.ScoreRoutes(r))
-	router.Mount("/api/users", user.ScoreRoutes(r))
+	router.Mount("/api/users", user.UserRoutes(r))
 	http.ListenAndServe("127.0.0.1:3001", router)
 	return router
 }

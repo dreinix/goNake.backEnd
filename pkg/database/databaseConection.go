@@ -17,7 +17,7 @@ func Conect() (*sql.DB, error) {
 
 	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_user (usr_id SERIAL PRIMARY KEY,
 		full_name STRING(50) NOT NULL,
-		usrn STRING(30) NOT NULL,
+		usrn STRING(30) NOT NULL UNIQUE,
 		pwd STRING(30) NOT NULL)`); err != nil {
 		log.Fatal(err)
 	}
