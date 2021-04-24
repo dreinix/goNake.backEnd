@@ -15,15 +15,19 @@ func Conect() (*sql.DB, error) {
 		return nil, err
 	}
 
-	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_user (usr_id SERIAL PRIMARY KEY,
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_user (
+		usr_id SERIAL PRIMARY KEY,
 		full_name STRING(50) NOT NULL,
 		usrn STRING(30) NOT NULL UNIQUE,
-		pwd STRING(30) NOT NULL)`); err != nil {
+		pwd STRING(30) NOT NULL,
+		stat STRING(8) NOT NULL)`); err != nil {
 		log.Fatal(err)
 	}
-	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_score (score_id SERIAL PRIMARY KEY,
-			value INT2 NOT NULL,
-			usr int references tbl_user(usr_id) ON UPDATE CASCADE ON DELETE CASCADE NOT NULL)`); err != nil {
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_score (
+			score_id SERIAL PRIMARY KEY,
+			score INT2 NOT NULL,
+			usr int references tbl_user(usr_id) ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+			scored_on TIMESTAMP)`); err != nil {
 		log.Fatal(err)
 	}
 	return db, nil

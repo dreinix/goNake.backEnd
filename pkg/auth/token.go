@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dreinix/gonake/pkg/database"
 	"github.com/go-chi/render"
 )
 
@@ -52,15 +54,54 @@ func extractToken(r *http.Request) string {
 	return ""
 }
 
+func ExtractTokenID(r *http.Request) (string, error) {
+	tokenString := extractToken(r)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("JWT_TOKEN")), nil
+	})
+	if err != nil {
+		return "", err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		usrn := fmt.Sprintf("%s", claims["user_id"])
+		if usrn != "" {
+			return usrn, nil
+		}
+		return "", nil
+	}
+	return "", nil
+}
+
+type User struct {
+	ID       int    `json:"ID"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+}
+
 func Authentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		db, _ := database.Conect()
 		err := tokenValid(r)
 		if err != nil {
 			w.WriteHeader(400)
 			render.JSON(w, r, err.Error())
 			return
 		}
-		next(w, r)
+
+		id, _ := ExtractTokenID(r)
+		var user User
+		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usrn = $1 and stat=$2`, id, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
+			w.WriteHeader(400)
+			render.JSON(w, r, "The user you're trying to use for authentication does not exist")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "usr", user)
+		next(w, r.WithContext(ctx))
 	}
 }
 
