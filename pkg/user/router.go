@@ -13,7 +13,7 @@ func UserRoutes(db *sql.DB) *chi.Mux {
 	router.Post("/", addUser(db))
 	router.Post("/login", logIn(db))
 	router.Get("/{id}", auth.Authentication(getUser(db)))
-	router.Get("/logout", auth.Authentication(LogOut(db)))
+	router.Post("/logout", auth.Authentication(LogOut(db)))
 	return router
 	//auth.Authenticate
 }
