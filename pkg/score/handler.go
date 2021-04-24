@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
+	"time"
+
+	"github.com/dreinix/gonake/pkg/auth"
+	"github.com/go-chi/render"
 )
 
 var (
@@ -20,17 +23,17 @@ func getAllScore(db *sql.DB) http.HandlerFunc {
 func addScore(db *sql.DB) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("usr").(auth.User)
 		json.NewDecoder(r.Body).Decode(&score)
-		msg := "You got " + strconv.Itoa(score.Value)
-		json.NewEncoder(w).Encode(msg)
-		/*
-			stmt, err := db.Prepare(`INSERT INTO tbl_score (Value, User)
-				VALUES ('?', '?', 'Product Manager', NOW(), NOW());`)
-			r, err := stmt.Exec(score.Value, score.User.ID)
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println(r.RowsAffected())*/
+		if _, err := db.Exec(`INSERT INTO tbl_score (score , usr ,scored_on )
+			VALUES ($1,$2,$3);`, score.Value, user.ID, time.Now()); err != nil {
+			msg := "Something went wrong. Please, try again later."
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, msg)
+			return
+		}
+		msg := "scored saved"
+		render.JSON(w, r, msg)
 	}
 }
 
