@@ -12,7 +12,8 @@ func UserRoutes(db *sql.DB) *chi.Mux {
 	router.Get("/", (getAllUsers(db)))
 	router.Post("/", addUser(db))
 	router.Post("/login", logIn(db))
-	router.Get("/{id}", auth.SetMiddlewareAuthentication(getUser(db)))
+	router.Get("/{id}", auth.Authentication(getUser(db)))
+	router.Post("/logout", auth.Authentication(LogOut(db)))
 	return router
 	//auth.Authenticate
 }
