@@ -10,6 +10,7 @@ import (
 func ScoreRoutes(db *sql.DB) *chi.Mux {
 	router := chi.NewRouter()
 	router.Get("/", getAllScore(db))
+	router.Get("/top", getTop(db))
 	router.Post("/", auth.Authentication(addScore(db)))
 	return router
 }
