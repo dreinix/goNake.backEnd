@@ -39,19 +39,25 @@ func tokenValid(r *http.Request) error {
 }
 
 func extractToken(r *http.Request) string {
-	c, err := r.Cookie("jwt")
-	if err != nil {
-		return "lo"
-	}
-	token := c.Value
-	if token != "" {
-		return token
-	}
-	bearerToken := r.Header.Get("Authorization")
-	if len(strings.Split(bearerToken, " ")) == 2 {
-		return strings.Split(bearerToken, " ")[1]
+
+	if r.Header["Authorization"] != nil {
+		bearerToken := r.Header.Get("Authorization")
+		if len(strings.Split(bearerToken, " ")) == 2 {
+			return strings.Split(bearerToken, " ")[1]
+		}
+		return ""
+	} else {
+		c, err := r.Cookie("jwt")
+		if err != nil {
+			return "lo"
+		}
+		token := c.Value
+		if token != "" {
+			return token
+		}
 	}
 	return ""
+
 }
 
 func ExtractTokenID(r *http.Request) (string, error) {
@@ -81,22 +87,30 @@ type User struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
 }
+type Message struct {
+	Msg string
+}
 
 func Authentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		/* w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*") */
 		db, _ := database.Conect()
 		err := tokenValid(r)
+
 		if err != nil {
+			msg := Message{err.Error()}
 			w.WriteHeader(400)
-			render.JSON(w, r, err.Error())
+			render.JSON(w, r, msg)
 			return
 		}
 
 		id, _ := ExtractTokenID(r)
 		var user User
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usrn = $1 and stat=$2`, id, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
-			w.WriteHeader(400)
-			render.JSON(w, r, "The user you're trying to use for authentication does not exist")
+			w.WriteHeader(200)
+			msg := Message{"This user does not exist anymore"}
+			render.JSON(w, r, msg)
 			return
 		}
 

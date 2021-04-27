@@ -112,7 +112,11 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			Secure:  false,
 			Path:    "/",
 		})
-		msg := "login successfully!"
+		type Message struct {
+			Msg   string
+			Token string
+		}
+		msg := Message{Msg: "login successfully", Token: token}
 		user.Password = ""
 		render.JSON(w, r, msg)
 	}
