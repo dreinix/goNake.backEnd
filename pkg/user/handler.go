@@ -29,7 +29,6 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 			render.JSON(w, r, "There's not user on database!! add someone")
 			return
 		}
-		//where stat = $1 "actv"
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn,stat FROM tbl_user where stat = $1 `, "actv").
 			Scan(&user.ID, &user.Name, &user.Username, &user.Status); err != nil {
 			render.JSON(w, r, err)
