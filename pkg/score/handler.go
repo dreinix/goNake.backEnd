@@ -124,5 +124,3 @@ func addScore(db *sql.DB) http.HandlerFunc {
 		render.JSON(w, r, msg)
 	}
 }
-
-//func(s *Storage)

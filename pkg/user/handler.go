@@ -29,7 +29,6 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 			render.JSON(w, r, "There's not user on database!! add someone")
 			return
 		}
-		//where stat = $1 "actv"
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn,stat FROM tbl_user where stat = $1 `, "actv").
 			Scan(&user.ID, &user.Name, &user.Username, &user.Status); err != nil {
 			render.JSON(w, r, err)
@@ -96,7 +95,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usrn = $1 and pwd = $2 and stat = $3`, user.Username, user.Password, "actv").
 			Scan(&user.ID, &user.Name, &user.Username); err != nil {
 			render.JSON(w, r, "username or password incorrect")
-			//render.JSON(w, r, "This user does not exist.")
 			return
 		}
 		token, err := auth.CreateToken(user.Username)
@@ -104,7 +102,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			render.JSON(w, r, "We couldn't log you in, please try again")
 		}
 		expirationTime := time.Now().Add(5 * 24 * time.Hour)
-		//fmt.Printf("you saved jwt  \n" + token)
 		http.SetCookie(w, &http.Cookie{
 			Name:    "jwt",
 			Value:   token,
@@ -112,7 +109,11 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			Secure:  false,
 			Path:    "/",
 		})
-		msg := "login successfully!"
+		type Message struct {
+			Msg   string
+			Token string
+		}
+		msg := Message{Msg: "login successfully", Token: token}
 		user.Password = ""
 		render.JSON(w, r, msg)
 	}
