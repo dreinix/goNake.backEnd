@@ -96,7 +96,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usrn = $1 and pwd = $2 and stat = $3`, user.Username, user.Password, "actv").
 			Scan(&user.ID, &user.Name, &user.Username); err != nil {
 			render.JSON(w, r, "username or password incorrect")
-			//render.JSON(w, r, "This user does not exist.")
 			return
 		}
 		token, err := auth.CreateToken(user.Username)
@@ -104,7 +103,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			render.JSON(w, r, "We couldn't log you in, please try again")
 		}
 		expirationTime := time.Now().Add(5 * 24 * time.Hour)
-		//fmt.Printf("you saved jwt  \n" + token)
 		http.SetCookie(w, &http.Cookie{
 			Name:    "jwt",
 			Value:   token,

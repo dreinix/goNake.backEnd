@@ -93,8 +93,6 @@ type Message struct {
 
 func Authentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		/* w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*") */
 		db, _ := database.Conect()
 		err := tokenValid(r)
 
@@ -118,66 +116,3 @@ func Authentication(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r.WithContext(ctx))
 	}
 }
-
-/*package auth
-
-import (
-	"log"
-	"net/http"
-	"os"
-
-	"github.com/go-chi/jwtauth/v5"
-	"github.com/go-chi/render"
-	"github.com/joho/godotenv"
-)
-
-var TokenAuth *jwtauth.JWTAuth
-
-func GoDotEnvVariable(key string) string {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-	return os.Getenv(key)
-}
-
-func CreateToken(user_id string) (string, error) {
-	token := GoDotEnvVariable(os.Getenv("JWT_TOKEN"))
-	TokenAuth = jwtauth.New("HS256", []byte(token), nil)
-	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"user_id": user_id})
-	return tokenString, nil
-}
-
-func Authenticate(endpoint func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie("jwt")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				w.WriteHeader(401)
-				render.JSON(w, r, "UNAUTHORIZED")
-				return
-			}
-			w.WriteHeader(401)
-			render.JSON(w, r, "invalid token")
-			return
-		}
-		us_id, err := TokenAuth.Decode(c.Value)
-		if err != nil {
-			w.WriteHeader(401)
-			render.JSON(w, r, us_id)
-			render.JSON(w, r, "your token has expire or the user changed the information")
-			return
-		}
-		endpoint(w, r)
-	})
-}
-*/
-func Verify() {
-
-}
-
-/*
-func Authenticate(endpoint http.HandlerFunc) http.HandlerFunc {
-
-	return nil
-}*/
