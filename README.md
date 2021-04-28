@@ -3,5 +3,9 @@ This project has a backend side, check it out on https://github.com/dreinix/goNa
 
 ## Project setup
 ```
+go mod vendor
+```
+## Run project
+```
 go run main.go
 ```
