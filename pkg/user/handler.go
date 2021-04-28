@@ -26,7 +26,8 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if !rows.Next() {
-			render.JSON(w, r, "There's not user on database!! add someone")
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, "There's not user on database")
 			return
 		}
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn,stat FROM tbl_user where stat = $1 `, "actv").
@@ -35,7 +36,7 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		var users []User
-		//The first value is ignore because "next"
+		// The first value is ignore because "next"
 		users = append(users, user)
 		for rows.Next() {
 			var u User
@@ -58,6 +59,18 @@ func getUser(db *sql.DB) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		var user User
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usr_id = $1 and stat = $2`, id, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
+			w.WriteHeader(400)
+			render.JSON(w, r, "This user does not exist.")
+			return
+		}
+		render.JSON(w, r, user)
+	}
+}
+
+func getMe(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("usr").(auth.User)
+		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usr_id = $1 and stat = $2`, user.ID, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
 			w.WriteHeader(400)
 			render.JSON(w, r, "This user does not exist.")
 			return

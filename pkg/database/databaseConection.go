@@ -2,19 +2,19 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
 )
 
-func Conect() (*sql.DB, error) {
-	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/gonake_db?sslmode=disable")
+func Conect(database string) (*sql.DB, error) {
+	con := fmt.Sprintf("postgresql://root@localhost:26257/%s_db?sslmode=disable", database)
+	db, err := sql.Open("postgres", con)
 	if err != nil {
-
 		log.Fatal("error connecting to the database: ", err)
 		return nil, err
 	}
-
 	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS tbl_user (
 		usr_id SERIAL PRIMARY KEY,
 		full_name STRING(50) NOT NULL,
@@ -32,13 +32,3 @@ func Conect() (*sql.DB, error) {
 	}
 	return db, nil
 }
-
-/*
-func insert(tbl string, User user) {
-	//command := fmt.Sprintf("INSERT INTO %s (full_name, department, designation, created_at, updated_at) VALUES ('Irshad', 'IT', 'Product Manager', NOW(), NOW());", tbl)
-	if _, err := db.Exec(
-		`INSERT INTO tbl_employee (full_name, department, designation, created_at, updated_at)
-		VALUES ('Irshad', 'IT', 'Product Manager', NOW(), NOW());`); err != nil {
-		log.Fatal(err)
-	}
-}*/

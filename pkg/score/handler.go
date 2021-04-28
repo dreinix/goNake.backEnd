@@ -85,7 +85,7 @@ func getTop(db *sql.DB) http.HandlerFunc {
 			fmt.Println("The user associated with " + strconv.Itoa(score.ID) + " score does not exist anymore.")
 		}
 		var scores []Score
-		//The first value is ignore because "next"
+		// The first value is ignore because "next"
 		score.User = user
 		scores = append(scores, score)
 		for rows.Next() {
