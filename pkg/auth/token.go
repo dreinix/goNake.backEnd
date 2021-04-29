@@ -93,7 +93,7 @@ type Message struct {
 
 func Authentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		db, _ := database.Conect()
+		db, _ := database.Conect("gonake")
 		err := tokenValid(r)
 
 		if err != nil {

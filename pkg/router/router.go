@@ -13,7 +13,7 @@ import (
 
 func StartServer() *chi.Mux {
 
-	r, err := database.Conect()
+	r, err := database.Conect("gonake")
 
 	if err != nil {
 		fmt.Println(err)
