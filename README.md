@@ -5,6 +5,10 @@ This project has a backend side, check it out on https://github.com/dreinix/goNa
 ```
 go mod vendor
 ```
+## Run Test
+```
+go test ./...
+```
 ## Run project
 ```
 go run main.go
