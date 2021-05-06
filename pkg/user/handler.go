@@ -26,17 +26,17 @@ func getAllUsers(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if !rows.Next() {
-			render.JSON(w, r, "There's not user on database!! add someone")
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, "There's not user on database")
 			return
 		}
-		//where stat = $1 "actv"
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn,stat FROM tbl_user where stat = $1 `, "actv").
 			Scan(&user.ID, &user.Name, &user.Username, &user.Status); err != nil {
 			render.JSON(w, r, err)
 			return
 		}
 		var users []User
-		//The first value is ignore because "next"
+		// The first value is ignore because "next"
 		users = append(users, user)
 		for rows.Next() {
 			var u User
@@ -67,6 +67,13 @@ func getUser(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+func getMe(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value("usr").(auth.User)
+		render.JSON(w, r, user)
+	}
+}
+
 func addUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&user)
@@ -75,7 +82,6 @@ func addUser(db *sql.DB) http.HandlerFunc {
 
 			if strings.Contains(err.Error(), "unique") {
 				msg := "Username already exist, we couldn't create your account."
-				w.WriteHeader(http.StatusBadRequest)
 				render.JSON(w, r, msg)
 				return
 			}
@@ -96,7 +102,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usrn = $1 and pwd = $2 and stat = $3`, user.Username, user.Password, "actv").
 			Scan(&user.ID, &user.Name, &user.Username); err != nil {
 			render.JSON(w, r, "username or password incorrect")
-			//render.JSON(w, r, "This user does not exist.")
 			return
 		}
 		token, err := auth.CreateToken(user.Username)
@@ -104,7 +109,6 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			render.JSON(w, r, "We couldn't log you in, please try again")
 		}
 		expirationTime := time.Now().Add(5 * 24 * time.Hour)
-		//fmt.Printf("you saved jwt  \n" + token)
 		http.SetCookie(w, &http.Cookie{
 			Name:    "jwt",
 			Value:   token,
@@ -112,7 +116,11 @@ func logIn(db *sql.DB) http.HandlerFunc {
 			Secure:  false,
 			Path:    "/",
 		})
-		msg := "login successfully!"
+		type Message struct {
+			Msg   string
+			Token string
+		}
+		msg := Message{Msg: "login successfully", Token: token}
 		user.Password = ""
 		render.JSON(w, r, msg)
 	}

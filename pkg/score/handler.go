@@ -18,7 +18,7 @@ var (
 
 func getAllScore(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query(`SELECT * FROM tbl_score`)
+		rows, err := db.Query(`SELECT * FROM tbl_score order by score DESC`)
 		if err != nil {
 			w.WriteHeader(500)
 			render.JSON(w, r, "Something went wrong")
@@ -29,7 +29,7 @@ func getAllScore(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		var id int64
-		if err := db.QueryRow(`SELECT * from tbl_score`).
+		if err := db.QueryRow(`SELECT * from tbl_score order by score DESC`).
 			Scan(&score.ID, &score.Value, &id, &score.Date); err != nil {
 			render.JSON(w, r, err)
 			return
@@ -39,7 +39,53 @@ func getAllScore(db *sql.DB) http.HandlerFunc {
 			fmt.Println("The user associated with " + strconv.Itoa(score.ID) + " score does not exist anymore.")
 		}
 		var scores []Score
-		//The first value is ignore because "next"
+		// The first value is ignore because "next"
+		score.User = user
+		scores = append(scores, score)
+		for rows.Next() {
+			var s Score
+			err := rows.Scan(&s.ID, &s.Value, &id, &s.Date)
+			if err != nil {
+				w.WriteHeader(500)
+				fmt.Println(err.Error())
+				render.JSON(w, r, "Something went wrong, please try again later")
+				return
+			}
+			if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usr_id = $1 and stat = $2`, id, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
+				fmt.Println("The user associated with " + strconv.Itoa(score.ID) + " score does not exist anymore.")
+			}
+			s.User = user
+			scores = append(scores, s)
+		}
+		// if there's only one result there's no next
+		render.JSON(w, r, scores)
+	}
+}
+
+func getTop(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query(`SELECT * FROM tbl_score order by score DESC LIMIT 10`)
+		if err != nil {
+			w.WriteHeader(500)
+			render.JSON(w, r, "Something went wrong")
+			return
+		}
+		if !rows.Next() {
+			render.JSON(w, r, "no score saved")
+			return
+		}
+		var id int64
+		if err := db.QueryRow(`SELECT * FROM tbl_score order by score DESC LIMIT 10`).
+			Scan(&score.ID, &score.Value, &id, &score.Date); err != nil {
+			render.JSON(w, r, err)
+			return
+		}
+		var user auth.User
+		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usr_id = $1 and stat = $2`, id, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
+			fmt.Println("The user associated with " + strconv.Itoa(score.ID) + " score does not exist anymore.")
+		}
+		var scores []Score
+		// The first value is ignore because "next"
 		score.User = user
 		scores = append(scores, score)
 		for rows.Next() {
@@ -78,5 +124,3 @@ func addScore(db *sql.DB) http.HandlerFunc {
 		render.JSON(w, r, msg)
 	}
 }
-
-//func(s *Storage)
