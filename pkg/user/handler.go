@@ -70,11 +70,6 @@ func getUser(db *sql.DB) http.HandlerFunc {
 func getMe(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := r.Context().Value("usr").(auth.User)
-		if err := db.QueryRow(`SELECT usr_id,full_name,usrn FROM tbl_user where usr_id = $1 and stat = $2`, user.ID, "actv").Scan(&user.ID, &user.Name, &user.Username); err != nil {
-			w.WriteHeader(400)
-			render.JSON(w, r, "This user does not exist.")
-			return
-		}
 		render.JSON(w, r, user)
 	}
 }
@@ -87,7 +82,6 @@ func addUser(db *sql.DB) http.HandlerFunc {
 
 			if strings.Contains(err.Error(), "unique") {
 				msg := "Username already exist, we couldn't create your account."
-				w.WriteHeader(http.StatusBadRequest)
 				render.JSON(w, r, msg)
 				return
 			}
